@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const App = () => {
   const initialOdds = [
@@ -20,32 +20,38 @@ const App = () => {
 
   const handleDraw = () => {
     setIsDrawing(true);
-
     const weights = [...odds].sort((a, b) => a.id - b.id);
-    console.log(weights);
-
     const total = weights.reduce((acc, value) => acc + value.chance, 0);
-    console.log(`total: ${total}`);
-
     const random = Math.random() * total;
-    console.log(`random: ${random}`);
 
     for (let i = 0, sum = 0; i < weights.length; i++) {
       sum += weights[i].chance;
-      console.log(sum);
       if (random < sum) {
-        console.log(`selected: ${weights[i].chance} - ${weights[i].name}`);
-        setOdds((prev) => prev.map((value) => value.id === weights[i].id ? { ...value, chance: 0, isSelected: true } : { ...value, chance: (value.chance / (total - weights[i].chance)) * total }));
+        setOdds((prev) => {
+          const selectedId = weights[i].id;
+          const selectedChance = weights[i].chance;
+          const remainingTotal = total - selectedChance;
+
+          return prev.map((item) => {
+            if (item.id === selectedId) {
+              return { ...item, chance: 0, isSelected: true };
+            }
+
+            if (remainingTotal === 0) {
+              return { ...item };
+            }
+
+            return {
+              ...item,
+              chance: (item.chance / remainingTotal) * total,
+            };
+          });
+        });
         break;
       }
     }
-
     setIsDrawing(false);
   };
-
-  useEffect(() => {
-    console.log(odds);
-  }, [odds]);
 
   return (
     <div className='w-screen bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 text-neutral-100'>
